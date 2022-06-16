@@ -65,7 +65,7 @@ def create_app(test_config=None):
             abort(404)
         # return data to view
         return jsonify({
-            'status': "success",
+            "status": "success",
             'categories': categories_dict
         })
 
@@ -85,13 +85,18 @@ def create_app(test_config=None):
         questions = Question.query.all()
         total_questions = len(questions)
         current_questions = paginate_questions(request, questions)
+        categories = Category.query.all()
+        categories_dict = {}
+        for category in categories:
+            categories_dict[category.id] = category.type
         # abort 404 if no questions
         if len(current_questions) == 0:
             abort(404)
         return jsonify({
-            'status': "Success",
+            'status': "success",
             'questions': current_questions,
             'total_questions': total_questions,
+            'categories': categories_dict
         })
     @app.route("/questions/<int:question_id>", methods=['DELETE'])
     def delete_question(question_id):
@@ -169,7 +174,6 @@ def create_app(test_config=None):
         search = request.get_json()
         selection = Question.query.filter(Question.question.ilike(f'%{search["search"]}%')).all()
         # 404 if no results found
-        print(search)
         if len(selection) == 0:
             abort(404)
         # paginate the results
@@ -181,7 +185,7 @@ def create_app(test_config=None):
             'total_questions': len(selection)
         })
 
-    @app.route("/questions/<int:category_id>", methods = ["GET"])
+    @app.route("/category/<int:category_id>/questions", methods = ["GET"])
     def get_question_by_category(category_id):
         """
         Create a GET endpoint to get questions based on category.
@@ -229,11 +233,11 @@ def create_app(test_config=None):
             abort(400)
 
         # load questions all questions if "ALL" is selected
-        if category == 0:
+        if category['id'] == 0:
             questions = Question.query.all()
         # load questions for given category
         else:
-            questions = Question.query.filter_by(category=category).all()
+            questions = Question.query.filter_by(category=category["id"]).all()
 
         # get total number of questions
         total = len(questions)

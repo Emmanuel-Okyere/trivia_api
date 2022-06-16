@@ -49,13 +49,13 @@ class QuizView extends Component {
     }
 
     $.ajax({
-      url: '/quizzes', //TODO: update request URL
+      url: '/quiz', //TODO: update request URL
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify({
-        previous_questions: previousQuestions,
-        quiz_category: this.state.quizCategory,
+        previous_question: previousQuestions,
+        category: this.state.quizCategory,
       }),
       xhrFields: {
         withCredentials: true,
