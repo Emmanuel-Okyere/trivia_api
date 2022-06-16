@@ -63,7 +63,7 @@ def create_app(test_config=None):
             abort(404)
         # return data to view
         return jsonify({
-            'success': True,
+            'status': "success",
             'categories': categories_dict
         })
 
@@ -93,6 +93,12 @@ def create_app(test_config=None):
         })
     @app.route("/questions/<int:question_id>", methods=['DELETE'])
     def delete_question(question_id):
+        """
+        Create an endpoint to DELETE question using a question ID.
+
+        TEST: When you click the trash icon next to a question, the question will be removed.
+        This removal will persist in the database and when you refresh the page.
+        """
         try:
             question = Question.query.filter_by(id= question_id).one_or_none()
             if question is None:
@@ -105,24 +111,79 @@ def create_app(test_config=None):
         except:
             abort(422)
 
-    """
-    @TODO:
-    Create an endpoint to DELETE question using a question ID.
+    @app.route("/questions", methods = ["POST"])
+    def create_questions():
+        """
+        Create an endpoint to POST a new question,
+        which will require the question and answer text,
+        category, and difficulty score.
 
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
-    """
+        TEST: When you submit a question on the "Add" tab,
+        the form will clear and the question will appear at the end of the last page
+        of the questions list in the "List" tab.
+        """
+        # Handles POST requests for creating new questions and searching questions.
 
-    """
-    @TODO:
-    Create an endpoint to POST a new question,
-    which will require the question and answer text,
-    category, and difficulty score.
+        # load the request body
+        body = request.get_json()
+        print(body)
+        # if search term is present
+        if body.get('searchTerm'):
+            search_term = body.get('searchTerm')
 
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
-    """
+            # query the database using search term
+            selection = Question.query.filter(
+                Question.question.ilike(f'%{search_term}%')).all()
+
+            # 404 if no results found
+            if len(selection) == 0:
+                abort(404)
+
+            # paginate the results
+            paginated = paginate_questions(request, selection)
+
+            # return results
+            return jsonify({
+                'success': True,
+                'questions': paginated,
+                'total_questions': len(Question.query.all())
+            })
+        # if no search term, create new question
+        else:
+            # load data from body
+            new_question = body.get('question')
+            new_answer = body.get('answer')
+            new_category = body.get('category')
+            new_difficulty = body.get('difficulty')
+            print(new_difficulty)
+            # ensure all fields have data
+            if ((new_question is None) or (new_answer is None)
+                    or (new_difficulty is None) or (new_category is None)):
+                abort(422)
+
+            try:
+                # create and insert new question
+                question = Question(question=new_question, answer=new_answer,
+                                    difficulty=new_difficulty, category=new_category)
+                question.insert()
+
+                # get all questions and paginate
+                selection = Question.query.order_by(Question.id).all()
+                current_questions = paginate_questions(request, selection)
+
+                # return data to view
+                return jsonify({
+                    'success': True,
+                    'created': question.id,
+                    'question_created': question.question,
+                    'questions': current_questions,
+                    'total_questions': len(Question.query.all())
+                })
+
+            except:
+                # abort unprocessable if exception
+                abort(422)
+
 
     """
     @TODO:
