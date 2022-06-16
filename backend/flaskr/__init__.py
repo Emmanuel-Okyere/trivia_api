@@ -1,14 +1,16 @@
+"""Trivia API file"""
 import os
-from flask import Flask, request, abort, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
 import random
-from flask_cors import CORS, cross_origin
 
-from models import setup_db, Question, Category
+from flask import Flask, abort, jsonify, request
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+from models import Category, Question, setup_db
+
 
 # utility for paginating questions
 def paginate_questions(request, selection):
+    """Paginate results"""
     page = request.args.get('page', 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
@@ -21,7 +23,7 @@ def paginate_questions(request, selection):
 QUESTIONS_PER_PAGE = 10
 
 def create_app(test_config=None):
-    # create and configure the app
+    """create and configure the app"""
     app = Flask(__name__)
     setup_db(app)
 
@@ -151,7 +153,6 @@ def create_app(test_config=None):
             })
 
         except:
-            # abort unprocessable if exception
             abort(422)
 
     @app.route("/search", methods = ["POST"])
@@ -173,7 +174,6 @@ def create_app(test_config=None):
             abort(404)
         # paginate the results
         paginated = paginate_questions(request, selection)
-
         # return results
         return jsonify({
             'status': "success",
@@ -181,31 +181,122 @@ def create_app(test_config=None):
             'total_questions': len(selection)
         })
 
-    """
-    @TODO:
-    Create a GET endpoint to get questions based on category.
+    @app.route("/questions/<int:category_id>", methods = ["GET"])
+    def get_question_by_category(category_id):
+        """
+        Create a GET endpoint to get questions based on category.
+        TEST: In the "List" tab / main screen, clicking on one of the
+        categories in the left column will cause only questions of that
+        category to be shown.
+        """
+        question = Question.query.filter_by(category = category_id).all()
+        category = Question.query.filter_by(id = category_id).one_or_none()
+        if len(question) ==0 or category is None:
+            abort(404)
+        paginated = paginate_questions(request, question)
+        return jsonify({
+            "status":"success",
+            "questions": paginated,
+            'total_questions': len(question),
+            "category": category.id
+        })
+    @app.route('/quiz', methods=['POST'])
+    def get_random_quiz_question():
+        """
+        @TODO:
+        Create a POST endpoint to get questions to play the quiz.
+        This endpoint should take category and previous question parameters
+        and return a random questions within the given category,
+        if provided, and that is not one of the previous questions.
 
-    TEST: In the "List" tab / main screen, clicking on one of the
-    categories in the left column will cause only questions of that
-    category to be shown.
-    """
+        TEST: In the "Play" tab, after a user selects "All" or a category,
+        one question at a time is displayed, the user is allowed to answer
+        and shown whether they were correct or not.
+        """
+        # Handles POST requests for playing quiz.
 
-    """
-    @TODO:
-    Create a POST endpoint to get questions to play the quiz.
-    This endpoint should take category and previous question parameters
-    and return a random questions within the given category,
-    if provided, and that is not one of the previous questions.
+        # load the request body
+        body = request.get_json()
 
-    TEST: In the "Play" tab, after a user selects "All" or a category,
-    one question at a time is displayed, the user is allowed to answer
-    and shown whether they were correct or not.
-    """
+        # get the previous questions
+        previous = body.get('previous_question')
 
-    """
-    @TODO:
-    Create error handlers for all expected errors
-    including 404 and 422.
-    """
+        # get the category
+        category = body.get('category')
+
+        # abort 400 if category or previous questions isn't found
+        if ((category is None) or (previous is None)):
+            abort(400)
+
+        # load questions all questions if "ALL" is selected
+        if category == 0:
+            questions = Question.query.all()
+        # load questions for given category
+        else:
+            questions = Question.query.filter_by(category=category).all()
+
+        # get total number of questions
+        total = len(questions)
+
+        # picks a random question
+        def get_random_question():
+            return questions[random.randrange(0, len(questions), 1)]
+
+        # checks to see if question has already been used
+        def check_if_used(previous_question):
+            used = False
+            for question in previous:
+                if question == previous_question.id:
+                    used = True
+            return used
+
+        # get random question
+        question = get_random_question()
+
+        # check if used, execute until unused question found
+        while check_if_used(question):
+            question = get_random_question()
+
+            # if all questions have been tried, return without question
+            # necessary if category has <5 questions
+            if len(previous) == total:
+                return jsonify({
+                    'status': "success"
+                })
+
+        # return the question
+        return jsonify({
+            'status': "success",
+            'question': question.format()
+        })
+
+    @app.errorhandler(404)
+    def not_found(error):
+        """
+        @TODO:
+        Create error handlers for all expected errors
+        including 404 and 422.
+        """
+        return jsonify({
+            "status": "failure",
+            "error": 404,
+            "message": "resource not found"
+        }), 404
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            "status": "failure",
+            "error": 422,
+            "message": "unprocessable"
+        }), 422
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            "status": "failure",
+            "error": 400,
+            "message": "bad request"
+        }), 400
 
     return app
