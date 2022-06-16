@@ -126,75 +126,60 @@ def create_app(test_config=None):
 
         # load the request body
         body = request.get_json()
-        print(body)
-        # if search term is present
-        if body.get('searchTerm'):
-            search_term = body.get('searchTerm')
-
-            # query the database using search term
-            selection = Question.query.filter(
-                Question.question.ilike(f'%{search_term}%')).all()
-
-            # 404 if no results found
-            if len(selection) == 0:
-                abort(404)
-
-            # paginate the results
-            paginated = paginate_questions(request, selection)
-
-            # return results
-            return jsonify({
-                'success': True,
-                'questions': paginated,
-                'total_questions': len(Question.query.all())
-            })
         # if no search term, create new question
-        else:
-            # load data from body
-            new_question = body.get('question')
-            new_answer = body.get('answer')
-            new_category = body.get('category')
-            new_difficulty = body.get('difficulty')
-            print(new_difficulty)
-            # ensure all fields have data
-            if ((new_question is None) or (new_answer is None)
-                    or (new_difficulty is None) or (new_category is None)):
-                abort(422)
+        # load data from body
+        new_question = body.get('question')
+        new_answer = body.get('answer')
+        new_category = body.get('category')
+        new_difficulty = body.get('difficulty')
+        # ensure all fields have data
+        if ((new_question is None) or (new_answer is None)
+                or (new_difficulty is None) or (new_category is None)):
+            abort(422)
 
-            try:
-                # create and insert new question
-                question = Question(question=new_question, answer=new_answer,
-                                    difficulty=new_difficulty, category=new_category)
-                question.insert()
+        try:
+            # create and insert new question
+            question = Question(question=new_question, answer=new_answer,
+                                difficulty=new_difficulty, category=new_category)
+            question.insert()
 
-                # get all questions and paginate
-                selection = Question.query.order_by(Question.id).all()
-                current_questions = paginate_questions(request, selection)
+            # return data to view
+            return jsonify({
+                'status': "success",
+                'created': question.id,
+                'question_created': question.question,
+            })
 
-                # return data to view
-                return jsonify({
-                    'success': True,
-                    'created': question.id,
-                    'question_created': question.question,
-                    'questions': current_questions,
-                    'total_questions': len(Question.query.all())
-                })
+        except:
+            # abort unprocessable if exception
+            abort(422)
 
-            except:
-                # abort unprocessable if exception
-                abort(422)
+    @app.route("/search", methods = ["POST"])
+    def search_question():
+        """
+        Create a POST endpoint to get questions based on a search term.
+        It should return any questions for whom the search term
+        is a substring of the question.
 
+        TEST: Search by any phrase. The questions list will update to include
+        only question that include that string within their question.
+        Try using the word "title" to start.
+        """
+        search = request.get_json()
+        selection = Question.query.filter(Question.question.ilike(f'%{search["search"]}%')).all()
+        # 404 if no results found
+        print(search)
+        if len(selection) == 0:
+            abort(404)
+        # paginate the results
+        paginated = paginate_questions(request, selection)
 
-    """
-    @TODO:
-    Create a POST endpoint to get questions based on a search term.
-    It should return any questions for whom the search term
-    is a substring of the question.
-
-    TEST: Search by any phrase. The questions list will update to include
-    only question that include that string within their question.
-    Try using the word "title" to start.
-    """
+        # return results
+        return jsonify({
+            'status': "success",
+            'questions': paginated,
+            'total_questions': len(selection)
+        })
 
     """
     @TODO:
