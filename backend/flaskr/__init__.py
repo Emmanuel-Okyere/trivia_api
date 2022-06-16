@@ -153,8 +153,9 @@ def create_app(test_config=None):
             # return data to view
             return jsonify({
                 'status': "success",
-                'created': question.id,
-                'question_created': question.question,
+                'details': "Question created",
+                'data': {"question": question.question,"answer":question.answer,
+                "difficulty":question.difficulty, "category":question.category},
             })
 
         except:
