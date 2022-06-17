@@ -47,11 +47,12 @@ This API endpoint is used to get all categories.
         "3": "Geography",
         "4": "History",
         "5": "Entertainment",
-        "6": "Sports"
+        "6": "Sports",
+        "7": "School",
+        "8": "News"
     },
     "status": "success"
 }
-
 ```
 
 <a name="add_category"></a>
