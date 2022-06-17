@@ -1,69 +1,21 @@
+# TRIVIA API DOCUMENTATION
 ## Table of Contents
 - [List of Categories](#get_all_category)
-- [Create a Category](#add_category)
-- [Delete question](#delete_category)
-- [Create question ](#add_question)
+- [Create Categories](#add_category)
 - [List of question](#get_all_questions)
+- [Create question ](#add_question)
+- [Delete question](#delete_question)
+- [Search for a question](#search_question)
+- [Get Question by Category](#question_by_category)
+- [Post a Quiz to Play](#quiz)
 
 
-```
-<a name="add_category"></a>
-
-## Create Book Category
-
-This API endpoint is used to create book category.
-**Note** Only authenticated, libarian users can access this endpoint.
-
-### Request Information
-
-| Type | URL        |
-| ---- | ---------- |
-| POST | /questions |
-
-### Header
-
-| Type         | Property name    |
-| ------------ | ---------------- |
-| Allow        | POST             |
-| Content-Type | application/json |
-
-### JSON Body
-
-| Property Name | type   | required | Description              |
-| ------------- | ------ | -------- | ------------------------ |
-| question      | string | true     | Question to be asked     |
-| answer        | string | true     | Answer to the question   |
-| category      | int    | true     | Category of the question |
-| difficulty    | int    | true     | The level od difficulty  |
-
-### Error Responses
-
-| Code | Message       |
-| ---- | ------------- |
-| 400  | BAD REQUEST   |
-| 422  | UNPROCESSABLE |
-
-### Successful Response Example
-
-```
-{
-    "data": {
-        "answer": "This is the answer",
-        "category": 2,
-        "difficulty": 3,
-        "question": "Here is a question"
-    },
-    "details": "Question created",
-    "status": "success"
-}
-```
 
 <a name="get_all_category"></a>
 
-## Get Book Categories
+## Get all Categories
 
-This API endpoint is used to create book category.
-**Note** Only authenticated, libarian users can access this endpoint.
+This API endpoint is used to get all categories.
 
 ### Request Information
 
@@ -102,12 +54,170 @@ This API endpoint is used to create book category.
 
 ```
 
-<a name="delete_category"></a>
+<a name="add_category"></a>
 
-## Delete Question Category
+## Create Categories
 
-This API endpoint is used to delete a book category.
-**Note** Only authenticated, libarian users can access this endpoint.
+This API endpoint is used to create a category.
+
+### Request Information
+
+| Type | URL         |
+| ---- | ----------- |
+| POST | /categories |
+
+### Header
+
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | POST             |
+| Content-Type | application/json |
+
+### JSON Body
+
+| Property Name | type   | required | Description |
+| ------------- | ------ | -------- | ----------- |
+| type          | string | true     | Category    |
+
+
+
+### Error Responses
+
+| Code | Message       |
+| ---- | ------------- |
+| 422  | UNPROCESSABLE |
+
+### Successful Response Example
+
+```
+{
+    "data": {
+        "category": "School"
+    },
+    "details": "Category created",
+    "status": "success"
+}
+```
+
+<a name="get_all_questions"></a>
+
+## Get all Questions
+
+This API endpoint is used to get all questions.
+**Note** This is a paginated endpoint. Pass _?page=number_ as params to the request to return a response of the requested page number. If the number is not found, the first page is used as default.
+
+### Request Information
+
+| Type | URL        |
+| ---- | ---------- |
+| GET  | /questions |
+
+### Header
+
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | GET              |
+| Content-Type | application/json |
+
+### Error Responses
+
+| Code | Message   |
+| ---- | --------- |
+| 404  | NOT FOUND |
+
+
+### Successful Response Example
+
+```
+{
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        "3": "Geography",
+        "4": "History",
+        "5": "Entertainment",
+        "6": "Sports"
+    },
+    "questions": [
+        {
+            "answer": "Agra",
+            "category": 3,
+            "difficulty": 2,
+            "id": 15,
+            "question": "The Taj Mahal is located in which Indian city?"
+        },
+        {
+            "answer": "Escher",
+            "category": 2,
+            "difficulty": 1,
+            "id": 16,
+            "question": "Which Dutch graphic artist–initials M C was a creator of optical illusions?"
+        }
+    ]
+    "status": "success",
+    "total_questions": 2
+}
+
+```
+
+<a name="add_question"></a>
+
+## Create Questions
+
+This API endpoint is used to create a question.
+
+### Request Information
+
+| Type | URL        |
+| ---- | ---------- |
+| POST | /questions |
+
+### Header
+
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | POST             |
+| Content-Type | application/json |
+
+### JSON Body
+
+| Property Name | type   | required | Description                      |
+| ------------- | ------ | -------- | -------------------------------- |
+| question      | string | true     | Question                         |
+| answer        | string | true     | Answer to the question           |
+| category      | int    | true     | Category for the question        |
+| difficulty    | int    | true     | Difficulty level of the question |
+
+
+
+### Error Responses
+
+| Code | Message       |
+| ---- | ------------- |
+| 422  | UNPROCESSABLE |
+
+### Successful Response Example
+
+```
+{
+    "data": {
+        "answer": "This is the answer",
+        "category": 2,
+        "difficulty": 6,
+        "question": "Here is a question"
+    },
+    "details": "Question created",
+    "status": "success"
+}
+```
+
+
+<a name="delete_question"></a>
+
+## Delete Question
+
+This API endpoint is used to delete a category.
+**Note** Deletion can be done with only **int** type id.
 
 ### Request Information
 
@@ -124,9 +234,10 @@ This API endpoint is used to delete a book category.
 
 ### Error Responses
 
-| Code | Message   |
-| ---- | --------- |
-| 400  | NOT FOUND |
+| Code | Message       |
+| ---- | ------------- |
+| 404  | NOT FOUND     |
+| 422  | UNPROCESSABLE |
 
 ### Successful Response Example
 
@@ -137,145 +248,165 @@ This API endpoint is used to delete a book category.
 }
 ```
 
-<a name="add_question"></a>
 
-## Create Questions
+<a name="search_question"></a>
 
-This API endpoint is used to create book to a category.
-**Note** Only authenticated, libarian users can access this endpoint.
+## Search for a Question
+
+This API endpoint is used search for a question with a keyword.
 
 ### Request Information
 
-| Type | URL        |
-| ---- | ---------- |
-| POST | /questions |
+| Type   | URL     |
+| ------ | ------- |
+| DELETE | /search |
 
 ### Header
 
-| Type          | Property name    |
-| ------------- | ---------------- |
-| Allow         | POST             |
-| Content-Type  | application/json |
-| Authorization | IsSuperUser      |
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | POST             |
+| Content-Type | application/json |
 
 ### JSON Body
 
-| Property Name | type    | required | Description          |
-| ------------- | ------- | -------- | -------------------- |
-| category      | string  | true     | Id of book category  |
-| title         | string  | true     | Title of book        |
-| description   | string  | true     | Description of book  |
-| is_available  | boolean | true     | Availability of book |
-| image         | image   | true     | Image of book        |
-
-
+| Property Name | type   | required | Description              |
+| ------------- | ------ | -------- | ------------------------ |
+| search        | string | true     | Parameter to be searched |
 
 ### Error Responses
 
-| Code | Message         |
-| ---- | --------------- |
-| 400  | BAD REQUEST     |
-| 400  | feilds required |
-| 401  | UNAUTHORIZED    |
-| 403  | FORBIDDEN       |
+| Code | Message     |
+| ---- | ----------- |
+| 404  | NOT FOUND   |
+| 400  | BAD REQUEST |
 
-### Successful Response Example
+### Successful Response Example (_searched for title_)
 
 ```
 {
+    "questions": [
+        {
+            "answer": "Maya Angelou",
+            "category": 4,
+            "difficulty": 2,
+            "id": 5,
+            "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        },
+        {
+            "answer": "Edward Scissorhands",
+            "category": 5,
+            "difficulty": 3,
+            "id": 6,
+            "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+        }
+    ],
     "status": "success",
-    "details": "book added successfully",
-    "data": {
-        "category_id": 2,
-        "title": "Robotics for all",
-        "description": "I am testing this",
-        "is_available": true,
-        "image": "/media/images/2022/06/05/57065066.png"
-    }
+    "total_questions": 2
 }
 ```
 
-<a name="get _all_questions"></a>
 
-## Get all Books
+<a name="question_by_category"></a>
 
-This API endpoint is used to view all book.
-**Note** Only authenticated, libarian users can access this endpoint.
+## Get Questions by Category
 
-### Request Information
-
-| Type | URL         |
-| ---- | ----------- |
-| GET  | /api/books/ |
-
-### Header
-
-| Type          | Property name    |
-| ------------- | ---------------- |
-| Allow         | GET              |
-| Content-Type  | application/json |
-| Authorization | IsSuperUser      |
-
-### Error Responses
-
-| Code | Message      |
-| ---- | ------------ |
-| 400  | BAD REQUEST  |
-| 401  | UNAUTHORIZED |
-| 403  | FORBIDDEN    |
-
-### Successful Response Example
-
-```
-[
-    {
-        "id": 1,
-        "name": "History"
-    },
-    {
-        "id": 2,
-        "name": "Social Science"
-    }
-]
-
-```
-
-<a name="delete_book"></a>
-
-## Delete Book
-
-This API endpoint is used to delete a book.
-**Note** Only authenticated, libarian users can access this endpoint.
+This API endpoint is used to get the questions for a specific category.
+**Note** Deletion can be done with only **int** type id.
 
 ### Request Information
 
-| Type   | URL                 |
-| ------ | ------------------- |
-| DELETE | /api/books/{int:pk} |
+| Type   | URL                                   |
+| ------ | ------------------------------------- |
+| DELETE | /category/{int:category_id}/questions |
 
 ### Header
 
-| Type          | Property name    |
-| ------------- | ---------------- |
-| Allow         | DELETE           |
-| Content-Type  | application/json |
-| Authorization | IsSuperUser      |
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | GET              |
+| Content-Type | application/json |
 
 ### Error Responses
 
-| Code | Message        |
-| ---- | -------------- |
-| 400  | BAD REQUEST    |
-| 400  | Does not exits |
-| 401  | UNAUTHORIZED   |
-| 403  | FORBIDDEN      |
+| Code | Message   |
+| ---- | --------- |
+| 404  | NOT FOUND |
 
 ### Successful Response Example
 
 ```
 {
-      "status": "success",
-      "details":"book deleted"
+    "category": 6,
+    "questions": [
+        {
+            "answer": "Brazil",
+            "category": 6,
+            "difficulty": 3,
+            "id": 10,
+            "question": "Which is the only team to play in every soccer World Cup tournament?"
+        },
+        {
+            "answer": "Uruguay",
+            "category": 6,
+            "difficulty": 4,
+            "id": 11,
+            "question": "Which country won the first ever soccer World Cup in 1930?"
+        }
+    ],
+    "status": "success",
+    "total_questions": 2
+}
+```
+
+<a name="quiz"></a>
+
+## Post a quiz to play
+
+This API endpoint is used to get random question to answer.
+**note** This uses JSON request parameters of category and previous questions.
+
+
+Sample request: `curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"previous_question": [12, 8, 2, 19, 34], "category": {"type": "Entertainment", "id": "5"}}'`
+### Request Information
+
+| Type | URL   |
+| ---- | ----- |
+| POST | /quiz |
+
+### Header
+
+| Type         | Property name    |
+| ------------ | ---------------- |
+| Allow        | POST             |
+| Content-Type | application/json |
+
+### JSON Body
+
+| Property Name     | type | required | Description                  |
+| ----------------- | ---- | -------- | ---------------------------- |
+| previous_question | dict | true     | Previous question dictionary |
+| category          | dict | true     | Category of that question    |
+
+
+### Error Responses
+
+| Code | Message     |
+| ---- | ----------- |
+| 400  | BAD REQUEST |
+
+### Successful Response Example
+
+```
+{
+    "question": {
+        "answer": "Agra",
+        "category": 3,
+        "difficulty": 2,
+        "id": 15,
+        "question": "The Taj Mahal is located in which Indian city?"
+    },
+    "status": "success"
 }
 ```
 

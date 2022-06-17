@@ -63,7 +63,6 @@ class Question(db.Model):
 
 """
 Category
-
 """
 class Category(db.Model):
     __tablename__ = 'categories'
@@ -73,6 +72,10 @@ class Category(db.Model):
 
     def __init__(self, type):
         self.type = type
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
 
     def format(self):
         return {

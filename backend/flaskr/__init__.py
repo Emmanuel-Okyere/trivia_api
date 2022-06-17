@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from models import Category, Question, setup_db
 
 
-# utility for paginating questions
+# paginating of questions
 def paginate_questions(request, selection):
     """Paginate results"""
     page = request.args.get('page', 1, type=int)
@@ -68,6 +68,44 @@ def create_app(test_config=None):
             "status": "success",
             'categories': categories_dict
         })
+    @app.route("/categories", methods = ["POST"])
+    def create_categories():
+        """
+        Create an endpoint to POST a new question,
+        which will require the question and answer text,
+        category, and difficulty score.
+
+        TEST: When you submit a question on the "Add" tab,
+        the form will clear and the question will appear at the end of the last page
+        of the questions list in the "List" tab.
+        """
+        # Handles POST requests for creating new questions and searching questions.
+
+        # load the request body
+        body = request.get_json()
+        # if no search term, create new question
+        # load data from body
+        category = body.get('type')
+        print(category)
+        # ensure all fields have data
+        if category is None:
+            abort(422)
+
+        try:
+            # create and insert new question
+            category = Category(type = category)
+            print(category)
+            category.insert()
+
+            # return data to view
+            return jsonify({
+                'status': "success",
+                'details': "Category created",
+                'data': {"category":category.type},
+            })
+
+        except:
+            abort(422)
 
     @app.route("/questions")
     def get_questions():
@@ -172,19 +210,23 @@ def create_app(test_config=None):
         only question that include that string within their question.
         Try using the word "title" to start.
         """
-        search = request.get_json()
-        selection = Question.query.filter(Question.question.ilike(f'%{search["search"]}%')).all()
-        # 404 if no results found
-        if len(selection) == 0:
-            abort(404)
-        # paginate the results
-        paginated = paginate_questions(request, selection)
-        # return results
-        return jsonify({
-            'status': "success",
-            'questions': paginated,
-            'total_questions': len(selection)
-        })
+        try:
+            search = request.get_json()
+            selection = Question.query.filter(
+                Question.question.ilike(f'%{search["search"]}%')).all()
+            # 404 if no results found
+            if len(selection) == 0:
+                abort(404)
+            # paginate the results
+            paginated = paginate_questions(request, selection)
+            # return results
+            return jsonify({
+                'status': "success",
+                'questions': paginated,
+                'total_questions': len(selection)
+            })
+        except:
+            abort(400)
 
     @app.route("/category/<int:category_id>/questions", methods = ["GET"])
     def get_question_by_category(category_id):
@@ -274,6 +316,7 @@ def create_app(test_config=None):
             'status': "success",
             'question': question.format()
         })
+
 
     @app.errorhandler(404)
     def not_found(error):
